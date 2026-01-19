@@ -13,18 +13,20 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('./../..'))
+sys.path.insert(0, os.path.abspath('./../../src'))
 
 import sphinx_rtd_theme
+import hio
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'hio'
-copyright = '2020-2021, Samuel M. Smith'
+copyright = '2020-2026, Samuel M. Smith'
 author = 'Samuel M. Smith'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.4'
+release = hio.__version__
 version = release
 
 # -- General configuration ---------------------------------------------------
@@ -35,7 +37,7 @@ version = release
 extensions = [
               'myst_parser',
               'sphinx.ext.napoleon',
-              'sphinx.ext.viewcode',
+              # 'sphinx.ext.viewcode',  # Disabled: causes IndexError in hio.base.filing
               'sphinx.ext.autosummary',
               'sphinx.ext.autodoc',
               'autoapi.extension',
@@ -78,42 +80,3 @@ if not on_rtd:  # only set the theme if we're building docs locally
 html_static_path = ['_static']
 
 html_short_title = '%s-%s' % (project, version)
-
-
-
-
-#extensions = [
-    #'sphinx.ext.autodoc',
-    #'sphinx.ext.autosummary',
-    #'sphinx.ext.coverage',
-    #'sphinx.ext.doctest',
-    #'sphinx.ext.extlinks',
-    #'sphinx.ext.ifconfig',
-    #'sphinx.ext.napoleon',
-    #'sphinx.ext.todo',
-    #'sphinx.ext.viewcode',
-#]
-
-#source_suffix = '.rst'
-#master_doc = 'index'
-
-
-
-#templates_path = ['.']
-#extlinks = {
-    #'issue': ('https://github.com/SmithSamuelM/leopy/issues/%s', '#'),
-    #'pr': ('https://github.com/SmithSamuelM/leopy/pull/%s', 'PR #'),
-#}
-
-
-#html_use_smartypants = True
-#html_last_updated_fmt = '%b %d, %Y'
-#html_split_index = False
-#html_sidebars = {
-   #'**': ['searchbox.html', 'globaltoc.html', 'sourcelink.html'],
-#}
-
-
-#napoleon_use_ivar = True
-#napoleon_use_rtype = False
-#napoleon_use_param = False
