@@ -15,7 +15,6 @@ import sys
 sys.path.insert(0, os.path.abspath('./../..'))
 sys.path.insert(0, os.path.abspath('./../../src'))
 
-import sphinx_rtd_theme
 import hio
 
 
@@ -37,11 +36,10 @@ version = release
 extensions = [
               'myst_parser',
               'sphinx.ext.napoleon',
-              # 'sphinx.ext.viewcode',  # Disabled: causes IndexError in hio.base.filing
+              'sphinx.ext.viewcode',  # Known to fail on hio.base.filing; enabled for investigation
               'sphinx.ext.autosummary',
               'sphinx.ext.autodoc',
               'autoapi.extension',
-              "sphinx_rtd_theme",
               ]
 
 napoleon_include_init_with_doc = True
