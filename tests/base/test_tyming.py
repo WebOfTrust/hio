@@ -53,6 +53,40 @@ def test_tymist():
     """End Test """
 
 
+def test_tymist_tock_abs_guard():
+    """
+    Test Tymist.tock setter applies abs() for consistency with Doer.tock.
+
+    This guards against negative tock values which would cause tyme to
+    decrement on tick(), breaking all scheduling invariants:
+    - Tyme monotonicity violated
+    - Tymers never expire
+    - Periodic Doers' retymes never reached
+    """
+    tymist = tyming.Tymist()
+
+    # Negative tock should be converted to positive
+    tymist.tock = -1.0
+    assert tymist.tock == 1.0, "Tymist.tock setter should apply abs()"
+
+    # Verify tyme always increases after tick
+    tymist.tyme = 0.0
+    tymist.tick()
+    assert tymist.tyme == 1.0, "tick() should increase tyme"
+
+    # Even with negative input, tyme should still increase
+    tymist.tock = -0.5
+    assert tymist.tock == 0.5
+    tymist.tick()
+    assert tymist.tyme == 1.5, "tick() should continue to increase tyme"
+
+    # Test negative tock in constructor
+    tymist2 = tyming.Tymist(tock=-0.25)
+    assert tymist2.tock == 0.25, "Constructor should also apply abs()"
+
+    """End Test """
+
+
 def test_tymee():
     """
     Test Tymee class
