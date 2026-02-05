@@ -45,7 +45,8 @@ class Tymist(hioing.Mixin):
         """
         super(Tymist,self).__init__(**kwa)  # Mixin for Mult-inheritance MRO
         self.tyme = float(tyme)
-        self.tock = float(tock) if tock is not None else self.Tock
+        # Use setter which applies abs() for consistency with Doer.tock
+        self.tock = tock if tock is not None else self.Tock
 
     @property
     def tyme(self):
@@ -74,8 +75,9 @@ class Tymist(hioing.Mixin):
     def tock(self, tock):
         """
         cycle time increment property setter, set ._tock to tock
+        Uses abs() for consistency with Doer.tock setter (doing.py).
         """
-        self._tock= float(tock)
+        self._tock = abs(float(tock))
 
     def tick(self, tock=None):
         """
