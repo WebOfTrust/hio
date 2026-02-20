@@ -14,7 +14,7 @@ from . import ogling
 # initialize global ogler at hio.help.ogler always instantiated by default
 ogler = ogling.initOgler(prefix='hio')  # init only runs  once on import
 
-from .decking import Deck
+from .decking import Deck, TrackedDeck, CueBox
 from .hicting import Hict, Mict
 from .timing import Timer, MonoTimer, TimerError, RetroTimerError
 
