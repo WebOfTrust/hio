@@ -300,6 +300,7 @@ class CueBox:
         """
         self._pending = TrackedDeck(cap=cap, owner="CueBox.pending")
         self._claimed = {}  # cueId -> (cue, claimer, claimedAt, retries)
+        self._retryCounts = {}  # id(cue) -> cumulative reject count
         self._maxRetries = maxRetries
         self._leakTimeout = leakTimeout
         self._resolved = 0
@@ -319,6 +320,9 @@ class CueBox:
         """
         Remove next cue from pending and mark as claimed.
 
+        Preserves cumulative retry count across reject/re-push cycles
+        so that maxRetries is enforced over the full lifecycle of a cue.
+
         Parameters:
             claimer (str): identifier of the claiming Doer
 
@@ -329,7 +333,8 @@ class CueBox:
         if cue is None:
             return None
         cueId = id(cue)
-        self._claimed[cueId] = (cue, claimer, time.monotonic(), 0)
+        retries = self._retryCounts.get(cueId, 0)
+        self._claimed[cueId] = (cue, claimer, time.monotonic(), retries)
         return (cueId, cue)
 
     def resolve(self, cueId):
@@ -339,16 +344,20 @@ class CueBox:
         Parameters:
             cueId: the cue identifier returned by claim()
         """
-        if self._claimed.pop(cueId, None) is not None:
+        entry = self._claimed.pop(cueId, None)
+        if entry is not None:
             self._resolved += 1
+            self._retryCounts.pop(cueId, None)
 
     def reject(self, cueId):
         """
         Return cue to pending queue. Respects maxRetries to prevent
         indefinite re-push livelock.
 
-        If the cue has been rejected maxRetries times, it is permanently
-        dropped instead of returned to pending.
+        Retry count is tracked cumulatively across reject/re-push/re-claim
+        cycles via identity tracking. If the cue has been rejected
+        maxRetries times, it is permanently dropped instead of returned
+        to pending.
 
         Parameters:
             cueId: the cue identifier returned by claim()
@@ -358,9 +367,12 @@ class CueBox:
             return
         cue, claimer, claimedAt, retries = entry
         self._rejected += 1
+        retries += 1
         if retries < self._maxRetries:
-            # Re-push with incremented retry count tracked via wrapper
+            self._retryCounts[id(cue)] = retries
             self._pending.push(cue)
+        else:
+            self._retryCounts.pop(id(cue), None)
 
     def expireLeaked(self):
         """

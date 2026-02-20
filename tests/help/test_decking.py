@@ -309,20 +309,36 @@ def test_cuebox_max_retries():
 
     box.push("stubborn_cue")
 
-    # Reject twice - should still be re-pushable
-    for i in range(2):
-        claim = box.claim("doer")
-        assert claim is not None
-        box.reject(claim[0])
-
-    # Third time - the cue is dropped by maxRetries
+    # First reject — retries becomes 1, still < 2 so re-pushed
     claim = box.claim("doer")
     assert claim is not None
     box.reject(claim[0])
+    assert box.stats["pending"] == 1  # back in pending
 
-    # After 3 rejects (exceeds maxRetries=2), the cue should be gone
-    # Note: retry tracking is per-push, not per-cue identity
-    # So each re-push gets fresh retry count
+    # Second reject — retries becomes 2, equals maxRetries so dropped
+    claim = box.claim("doer")
+    assert claim is not None
+    box.reject(claim[0])
+    assert box.stats["pending"] == 0  # permanently dropped
+
+    # Nothing left to claim
+    claim = box.claim("doer")
+    assert claim is None
+
+    # Verify the livelock pattern terminates
+    box2 = CueBox(maxRetries=3)
+    box2.push("livelock_cue")
+    cycles = 0
+    while box2:
+        claim = box2.claim("doer")
+        if claim is None:
+            break
+        box2.reject(claim[0])
+        cycles += 1
+        if cycles > 100:
+            break  # safety
+    assert cycles == 3  # exactly maxRetries rejects then dropped
+    assert not box2  # empty
 
     """End Test"""
 
